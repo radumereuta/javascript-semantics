@@ -3,7 +3,7 @@ module JS-SYNTAX
 //////////////////////////////////////////////////////////////////////
 // A.1 Lexical Grammar
 //////////////////////////////////////////////////////////////////////
-
+// 11.8.4
 syntax RegularExpressionLiteral // TODO
 
 //////////////////////////////////////////////////////////////////////
@@ -11,7 +11,7 @@ syntax RegularExpressionLiteral // TODO
 //////////////////////////////////////////////////////////////////////
 
 // IdentifierReference, BindingIdentifier, LabelIdentifier
-syntax Identifier ::= r"[\\_\\$A-Za-z][\\_\\$A-Za-z0-9]*"   [token]
+syntax Identifier ::= r"[\\_\\$A-Za-z][\\_\\$A-Za-z0-9]*"   [token, reject2("null|true|false|break|case|catch|class|const|continue|debugger|default|delete|do|else|export|extends|finally|for|function|if|import|in|instanceof|new|return|super|switch|this|throw|try|typeof|var|void|while|with|yield|enum|await")]
 
 syntax PrimaryExpression ::= "this"
                            | Identifier                     /* IdentifierReference */
@@ -26,16 +26,38 @@ syntax PrimaryExpression ::= "this"
                            | "(" Expression ")"             /* ParenthesizedExpression */  /* CoverParenthesizedExpressionAndArrowParameterList */  [klabel('(_)::ExpressionS->PrimaryExpression)]
 
 syntax Literal ::= NullLiteral
-                 | Bool         // TODO: BooleanLiteral
-                 | Int | Float  // TODO: NumericLiteral
-                 | String       // TODO: StringLiteral
+                 | Bool           // BooleanLiteral
+                 | Int | Float    // NumericLiteral
+                 | StringLiteral  // StringLiteral
 
 syntax NullLiteral ::= "null"
 
-syntax Bool
-syntax Int
-syntax Float
-syntax String
+syntax Bool  ::= "true"  [token]
+               | "false" [token]
+syntax Int   ::= r"0[bB][0-1]+"       [token] // BinaryIntegerLiteral
+               | r"0[oO][0-7]+"       [token] // OctalIntegerLiteral
+               | r"0[xX][0-9a-fA-F]+" [token] // OctalIntegerLiteral
+
+syntax Float ::= r"([0]|[1-9][0-9]*)\\.([0-9]+)?([eE][\\+-]?[0-9]+)?" [token] // decimal literal
+               | r"                 \\.([0-9]+) ([eE][\\+-]?[0-9]+)?" [token]
+               | r"([0]|[1-9][0-9]*)            ([eE][\\+-]?[0-9]+)?" [token]
+
+// 11.8.4 String Literals
+syntax StringLiteral ::= r"[\"](([^\"\n\r\\\\])|([\\\\](['\"\\\\bfnrtv]|[^'\"\\\\bfnrtv0-9xu\n\r]|[0]|[x][0-9a-fA-F]{2}|[u][0-9a-fA-F]{4}|[u][{][0-9a-fA-F]+[}])))*[\"]" [token]
+                       | r"['] (([^'\n\r\\\\]) |([\\\\](['\"\\\\bfnrtv]|[^'\"\\\\bfnrtv0-9xu\n\r]|[0]|[x][0-9a-fA-F]{2}|[u][0-9a-fA-F]{4}|[u][{][0-9a-fA-F]+[}])))*[']"  [token]
+
+// [\"]                               // double quotes
+// [^\"\n\r\\\\]                      // source character, but none of " or \ or LineTerminator
+// [\\\\]                             // \ EscapeSequence:
+//    ['\"\\\\bfnrtv]                 // SingleEscapeCharacter: ' " \ b f n r t v
+//    [^'\"\\\\bfnrtv0-9xu\n\r]       // NonEscapeCharacter: SourceCharacter but not one of EscapeCharacter or LineTerminator
+//     0 [lookahead =/= DecimalDigit] // TODO: why the lookahead?
+//    [x][0-9a-fA-F]{2}               // HexEscapeSequence
+//    [u][0-9a-fA-F]{4}               // UnicodeEscapeSequence
+//    [u][{][0-9a-fA-F]+[}]
+
+
+
 
 // ElementList, Arguments, ArgumentList
 syntax Elements ::= List{Element, ","}
