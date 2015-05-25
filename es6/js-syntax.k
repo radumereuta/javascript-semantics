@@ -1,4 +1,10 @@
+module JS-SYNTAX-COMMON
+syntax Program
+
+endmodule
+
 module JS-SYNTAX
+imports JS-SYNTAX-COMMON
 
 //////////////////////////////////////////////////////////////////////
 // A.1 Lexical Grammar
@@ -11,6 +17,7 @@ syntax RegularExpressionLiteral // TODO
 //////////////////////////////////////////////////////////////////////
 
 // IdentifierReference, BindingIdentifier, LabelIdentifier
+// TODO: the standard doesn't describe ID_Start and ID_Continue, found this though: https://github.com/mathiasbynens/unicode-4.1.0/tree/master/properties
 syntax Identifier ::= r"[\\_\\$A-Za-z][\\_\\$A-Za-z0-9]*"   [token, reject2("null|true|false|break|case|catch|class|const|continue|debugger|default|delete|do|else|export|extends|finally|for|function|if|import|in|instanceof|new|return|super|switch|this|throw|try|typeof|var|void|while|with|yield|enum|await")]
 
 syntax PrimaryExpression ::= "this"
@@ -39,8 +46,8 @@ syntax Int   ::= r"0[bB][0-1]+"       [token] // BinaryIntegerLiteral
                | r"0[xX][0-9a-fA-F]+" [token] // OctalIntegerLiteral
 
 syntax Float ::= r"([0]|[1-9][0-9]*)\\.([0-9]+)?([eE][\\+-]?[0-9]+)?" [token] // decimal literal
-               | r"                 \\.([0-9]+) ([eE][\\+-]?[0-9]+)?" [token]
-               | r"([0]|[1-9][0-9]*)            ([eE][\\+-]?[0-9]+)?" [token]
+               | r"\\.([0-9]+) ([eE][\\+-]?[0-9]+)?"                  [token]
+               | r"([0]|[1-9][0-9]*)([eE][\\+-]?[0-9]+)?"             [token]
 
 // 11.8.4 String Literals
 syntax StringLiteral ::= r"[\"](([^\"\n\r\\\\])|([\\\\](['\"\\\\bfnrtv]|[^'\"\\\\bfnrtv0-9xu\n\r]|[0]|[x][0-9a-fA-F]{2}|[u][0-9a-fA-F]{4}|[u][{][0-9a-fA-F]+[}])))*[\"]" [token]
@@ -79,7 +86,7 @@ syntax PropertyName ::= LiteralPropertyName
                       | ComputedPropertyName
 
 syntax LiteralPropertyName ::= Identifier | NullLiteral | Bool  // TODO: IdentifierName
-                             | String                           // TODO: StringLiteral
+                             | StringLiteral                    // TODO: StringLiteral
                              | Int | Float                      // TODO: NumericLiteral
 
 syntax ComputedPropertyName ::= "[" Expression "]" /* AssignmentExpression */
@@ -315,7 +322,8 @@ syntax ClassElement ::=          MethodDefinition
 // A.5 Scripts and Modules
 //////////////////////////////////////////////////////////////////////
 
-syntax Program ::= Script
+syntax Program ::= Script [prefer, klabel('script), bracket] // Ambiguity between the script list and module list, so adding prefer to keep this branch if possible.
+                                                             // Added `klabel` so the node doesn't get removed before applying prefer, and added `bracket` so it does get removed after that.
                  | Module
 
 // ScriptBody
@@ -344,7 +352,7 @@ syntax ImportExportSpecifiers ::= List{ImportExportSpecifier, ","}
 syntax ImportExportSpecifier ::=                 Identifier                      /* ImportedBinding for ImportSpecifier */ /* IdentifierName for ExportSpecifier */
                                | Identifier "as" Identifier /* IdentifierName */ /* ImportedBinding for ImportSpecifier */ /* IdentifierName for ExportSpecifier */
 
-syntax ModuleSpecifier ::= String // TODO: StringLiteral
+syntax ModuleSpecifier ::= StringLiteral // TODO: StringLiteral
 
 syntax ExportDeclaration ::= "export"              "*"               "from" ModuleSpecifier ";"                                                        /* FromClause */
                            | "export" "{" ImportExportSpecifiers "}" "from" ModuleSpecifier ";" /* ExportClause */ /* TODO: a trailing comma option */ /* FromClause */
