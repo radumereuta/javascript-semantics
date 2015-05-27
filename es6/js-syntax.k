@@ -51,14 +51,14 @@ syntax Float ::= r"([0]|[1-9][0-9]*)\\.([0-9]+)?([eE][\\+-]?[0-9]+)?" [token] //
 
 // 11.8.4 String Literals
 syntax StringLiteral ::= r"[\"](([^\"\n\r\\\\])|([\\\\](['\"\\\\bfnrtv]|[^'\"\\\\bfnrtv0-9xu\n\r]|[0]|[x][0-9a-fA-F]{2}|[u][0-9a-fA-F]{4}|[u][{][0-9a-fA-F]+[}])))*[\"]" [token]
-                       | r"['] (([^'\n\r\\\\]) |([\\\\](['\"\\\\bfnrtv]|[^'\"\\\\bfnrtv0-9xu\n\r]|[0]|[x][0-9a-fA-F]{2}|[u][0-9a-fA-F]{4}|[u][{][0-9a-fA-F]+[}])))*[']"  [token]
+                       | r"['](([^'\n\r\\\\])|([\\\\](['\"\\\\bfnrtv]|[^'\"\\\\bfnrtv0-9xu\n\r]|[0]|[x][0-9a-fA-F]{2}|[u][0-9a-fA-F]{4}|[u][{][0-9a-fA-F]+[}])))*[']"    [token]
 
 // [\"]                               // double quotes
 // [^\"\n\r\\\\]                      // source character, but none of " or \ or LineTerminator
 // [\\\\]                             // \ EscapeSequence:
 //    ['\"\\\\bfnrtv]                 // SingleEscapeCharacter: ' " \ b f n r t v
 //    [^'\"\\\\bfnrtv0-9xu\n\r]       // NonEscapeCharacter: SourceCharacter but not one of EscapeCharacter or LineTerminator
-//     0 [lookahead =/= DecimalDigit] // TODO: why the lookahead?
+//     0 [lookahead =/= DecimalDigit] // TODO: why the lookahead? Apparently will be clarified in ES7 https://bugs.ecmascript.org/show_bug.cgi?id=3477
 //    [x][0-9a-fA-F]{2}               // HexEscapeSequence
 //    [u][0-9a-fA-F]{4}               // UnicodeEscapeSequence
 //    [u][{][0-9a-fA-F]+[}]
@@ -324,7 +324,7 @@ syntax ClassElement ::=          MethodDefinition
 
 syntax Program ::= Script [prefer, klabel('script), bracket] // Ambiguity between the script list and module list, so adding prefer to keep this branch if possible.
                                                              // Added `klabel` so the node doesn't get removed before applying prefer, and added `bracket` so it does get removed after that.
-                 | Module
+                 | Module [klabel('module), bracket] 
 
 // ScriptBody
 syntax Script ::= Statements
