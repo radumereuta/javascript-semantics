@@ -5,7 +5,7 @@ function mkSend(rawSend) {
     if (whiteList[target]) {
       rawSend(target,msg);
     } else {
-      console.log("Rejected.");
+      
     }
   }
   return newSend;
