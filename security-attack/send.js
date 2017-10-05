@@ -12,7 +12,7 @@ function mkSend(rawSend) {
 }
 
 send = mkSend(function (target, msg) {
-  console.log("Sent " + msg + " to " + target);
+  
 });
 
 //Object.prototype["http://www.evil.com"] = true;
